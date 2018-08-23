@@ -1,0 +1,34 @@
+HW-1	CS451	10 points	Due: Monday. 8/27/2018
+
+Create a C/C++ program that will handle as many as 4 command-line 
+arguments. Each argument will consist of a UNIX command with any 
+appropriate syntax that will then be executed with the "system" 
+system call. Any output resulting from a "system" call must be 
+written to an output file.
+
+For example: ./hw1 ls *.cpp
+
+Which would perform the same as "ls *.cpp >> output.txt"
+
+
+Requirements:
+1. Select UNIX commands that will report the current date/time 
+   (date), current user (who am i), user processes list (ps), 
+   and user disk quota (quota).
+
+2. All output must be written to "output.txt".
+
+3. Turn in your source code, "output.txt", and the command-line that 
+   is used to execute your program.
+
+* See the unix "man" pages on system - i.e. "man system" - for info on the 
+system command.
+
+REQUIREMENTS:
+-------------
+1. Your program must run on Linux Mint.
+
+2. Your full name must appear as a comment at the beginning of your 
+   program.
+
+3. Your source code must be named hw1-yourname.c
