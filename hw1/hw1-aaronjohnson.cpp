@@ -2,6 +2,10 @@
 //Email:      aaron.r.johnson@und.edu
 //Course:     CSci451
 //Instructor: Dr. Ronald Marsh
+
+//the command that creates the text in my output.txt is as follows:
+//        ./hw1-aaronjohnson.cpp whoami date ps df
+
 #include <stdio.h>
 #include <cstdlib>
 #include <string.h>
