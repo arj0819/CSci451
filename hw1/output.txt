@@ -1,0 +1,17 @@
+aaron
+Mon Aug 27 21:00:47 CDT 2018
+   PID TTY          TIME CMD
+  3204 pts/0    00:00:00 bash
+ 37477 pts/0    00:00:00 hw1-aaronjohnso
+ 37482 pts/0    00:00:00 sh
+ 37483 pts/0    00:00:00 ps
+Filesystem     1K-blocks    Used Available Use% Mounted on
+udev             8182376       0   8182376   0% /dev
+tmpfs            1641176    9500   1631676   1% /run
+/dev/sda1       86567288 7444704  74702184  10% /
+tmpfs            8205872   17992   8187880   1% /dev/shm
+tmpfs               5120       4      5116   1% /run/lock
+tmpfs            8205872       0   8205872   0% /sys/fs/cgroup
+cgmfs                100       0       100   0% /run/cgmanager/fs
+tmpfs            1641176      32   1641144   1% /run/user/1000
+/dev/sr0         1855008 1855008         0 100% /media/aaron/Linux Mint 18.3 Cinnamon 64-bit
