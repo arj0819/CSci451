@@ -4,7 +4,7 @@
 //Instructor: Dr. Ronald Marsh
 
 //the command that creates the text in my output.txt is as follows:
-//        ./hw1-aaronjohnson.cpp whoami date ps df
+//        ./hw1-aaronjohnson whoami date ps df
 
 #include <stdio.h>
 #include <cstdlib>
