@@ -4,6 +4,12 @@
 //Instructor: Dr. Ronald Marsh
 //Assignment: hw2
 
+/*
+    This program is a fork bomb that spawns 
+    the xeyes program for each fork of the
+    parent process.
+*/
+
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
