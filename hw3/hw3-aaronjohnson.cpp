@@ -4,6 +4,13 @@
 //Instructor: Dr. Ronald Marsh
 //Assignment: hw3
 
+//NOTE: Please compile with the following command:
+
+//      g++ -std=c++11 hw3-aaronjohnson.cpp -l pthread -o hw3-aaronjohnson
+
+//      This program requires at least -std=c++0x and linking to the
+//      pthread library to implement std::thread.
+
 /*
     This program downloads a text file, loads the text of the file 
     into the program dynamically using C++ std::string class, lowers
