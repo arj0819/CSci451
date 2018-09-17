@@ -18,6 +18,11 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <thread>
+#include <string>
+#include <iostream>
+#include <fstream>
+
+using namespace std;
 
 int main(int argc, char *argv[]) 
 {
@@ -27,5 +32,15 @@ int main(int argc, char *argv[])
     }
     system("wget http://undcemcs01.und.edu/~ronald.marsh/CLASS/CS451/hw3-data.txt");
 
+    ofstream file;
+
+    file.open("hw3-data.txt");
+    if (!file) {
+        cerr << "Couldn't open the file. Exiting...";
+        exit(1);
+    }
+
+    file.close();
+    
     return 0;
 }
