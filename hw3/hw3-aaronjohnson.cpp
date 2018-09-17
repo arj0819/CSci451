@@ -30,9 +30,7 @@ void lookForEasy(const std::string fileText);
 
 int main(int argc, char *argv[]) 
 {
-    static int polarCount = 0;
-    static int easyCount = 0;
-
+    int wordCount = 0;
     downloadNewFile();
 
     ifstream file;
@@ -45,13 +43,24 @@ int main(int argc, char *argv[])
 
     string fileText;
 
-    file >> fileText;
+    do {
+        if(!(file >> fileText)) { break;}
+        printf("Word: %s\n", fileText.c_str());
+        wordCount++;
+    }
+    while (!file.eof());
 
-    thread polarThread(lookForPolar, fileText);
-    thread easyThread(lookForEasy, fileText);
+    file.clear();
+    file.seekg(0);
 
-    polarThread.join();
-    easyThread.join();
+    printf("Word Count: %d\n", wordCount);
+    // file >> fileText;
+
+    // thread polarThread(lookForPolar, fileText);
+    // thread easyThread(lookForEasy, fileText);
+
+    // polarThread.join();
+    // easyThread.join();
 
     file.close();
     
@@ -68,8 +77,12 @@ void downloadNewFile() {
 
 void lookForPolar(const std::string fileText) {
     puts("Hello from PolarThread!");
+    int polarCount;
+    //cout << fileText;
 }
 
 void lookForEasy(const std::string fileText) {
     puts("Hello from EasyThread!");
+    int easyCount;
+    //cout << fileText;
 }
