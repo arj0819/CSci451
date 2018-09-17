@@ -5,18 +5,15 @@
 //Assignment: hw3
 
 /*
-    This program downloads a text file, loads the characters of
-    the file into the program dynamically, then parses through it
-    with two threads, one to count the # of occurrences of the word
-    "Easy", and the other to count the # of occurrences of the word
-    "Polar", regardless of case. 
+    This program downloads a text file, loads the text of the file 
+    into the program dynamically using C++ std::string class, lowers
+    the case of each word in the file, then parses through it with 
+    two threads, one to count the # of occurrences of the word 
+    "easy", and the other to count the # of occurrences of the word
+    "polar". 
 */
 
-#include <cstdlib>
 #include <cstdio>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <sys/types.h>
 #include <thread>
 #include <string>
 #include <iostream>
@@ -34,10 +31,10 @@ int main(int argc, char *argv[])
     int wordCount = 0;
     downloadNewFile();
 
-    ifstream file;
+    ifstream inFile;
 
-    file.open("hw3-data.txt");
-    if (!file) {
+    inFile.open("hw3-data.txt");
+    if (!inFile) {
         cerr << "Couldn't open the file. Exiting...";
         exit(1);
     }
@@ -46,27 +43,19 @@ int main(int argc, char *argv[])
     string fileText;
 
     do {
-        if(!(file >> fileWord)) { break;}
+        if(!(inFile >> fileWord)) { break;}
         transform(fileWord.begin(), fileWord.end(), fileWord.begin(), ::tolower);
         fileText.append(fileWord + " ");
         wordCount++;
     }
-    while (!file.eof());
-    
-    file.clear();
-    file.seekg(0);
+    while (!inFile.eof());
+    inFile.close();
 
-    printf("Word Count: %d\n", wordCount);
-    printf("%s", fileText.c_str());
-    // file >> fileText;
+    thread polarThread(lookForPolar, fileText);
+    thread easyThread(lookForEasy, fileText);
 
-    // thread polarThread(lookForPolar, fileText);
-    // thread easyThread(lookForEasy, fileText);
-
-    // polarThread.join();
-    // easyThread.join();
-
-    file.close();
+    polarThread.join();
+    easyThread.join();
     
     return 0;
 }
@@ -81,12 +70,30 @@ void downloadNewFile() {
 
 void lookForPolar(const std::string fileText) {
     puts("Hello from PolarThread!");
-    int polarCount;
-    //cout << fileText;
+
+    int polarCount = 0;
+    string target ("polar");
+
+    size_t position = fileText.find(target);
+    while (position != string::npos) {
+        position = fileText.find(target,position + 1);
+        polarCount++;
+    }
+
+    printf("PolarThread found %d instances of the word \"polar\"!\n", polarCount);
 }
 
 void lookForEasy(const std::string fileText) {
     puts("Hello from EasyThread!");
-    int easyCount;
-    //cout << fileText;
+
+    int easyCount = 0;
+    string target ("easy");
+
+    size_t position = fileText.find(target);
+    while (position != string::npos) {
+        position = fileText.find(target,position + 1);
+        easyCount++;
+    }
+
+    printf("EasyThread found %d instances of the word \"easy\"!\n", easyCount);
 }
