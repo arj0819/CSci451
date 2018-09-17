@@ -21,6 +21,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 
 using namespace std;
 
@@ -41,19 +42,22 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    string fileWord;
     string fileText;
 
     do {
-        if(!(file >> fileText)) { break;}
-        printf("Word: %s\n", fileText.c_str());
+        if(!(file >> fileWord)) { break;}
+        transform(fileWord.begin(), fileWord.end(), fileWord.begin(), ::tolower);
+        fileText.append(fileWord + " ");
         wordCount++;
     }
     while (!file.eof());
-
+    
     file.clear();
     file.seekg(0);
 
     printf("Word Count: %d\n", wordCount);
+    printf("%s", fileText.c_str());
     // file >> fileText;
 
     // thread polarThread(lookForPolar, fileText);
