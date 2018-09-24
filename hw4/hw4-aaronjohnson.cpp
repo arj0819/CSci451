@@ -2,22 +2,18 @@
 //Email:      aaron.r.johnson@und.edu
 //Course:     CSci451
 //Instructor: Dr. Ronald Marsh
-//Assignment: hw3
+//Assignment: hw4
 
 //NOTE: Please compile with the following command:
 
-//      g++ -std=c++11 hw3-aaronjohnson.cpp -l pthread -o hw3-aaronjohnson
+//      g++ -std=c++11 hw4-aaronjohnson.cpp -l pthread -o hw4-aaronjohnson
 
 //      This program requires at least -std=c++0x and linking to the
 //      pthread library to implement std::thread.
 
 /*
-    This program downloads a text file, loads the text of the file 
-    into the program dynamically using C++ std::string class, lowers
-    the case of each word in the file, then parses through it with 
-    two threads, one to count the # of occurrences of the word 
-    "easy", and the other to count the # of occurrences of the word
-    "polar". 
+    This program will use the PTHREAD library to create
+    2 threads and mutexes to synchronize them.
 */
 
 #include <cstdio>
