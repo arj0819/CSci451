@@ -38,8 +38,8 @@
 
 using namespace std;
 
-void openForReading(std::ifstream* inFile);
-void writeToFile(std::ofstream* outFile, std::ifstream* inFile);
+void openForReading(ifstream* inFile);
+void writeToFile(ofstream* outFile, ifstream* inFile);
 
 int currentInt;
 int currentInt_Mutex = 0;
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void openForReading(std::ifstream* inFile) {
+void openForReading(ifstream* inFile) {
     inFile->open("hw4.in");
     if (!*inFile) {
         cerr << "Couldn't open the file. Exiting...";
@@ -86,7 +86,7 @@ void openForReading(std::ifstream* inFile) {
     } while (!inFile->eof());
 }
 
-void writeToFile(std::ofstream* outFile, std::ifstream* inFile) {
+void writeToFile(ofstream* outFile, ifstream* inFile) {
     do {
         while(1) {
             if (currentInt_Mutex == 1) {
