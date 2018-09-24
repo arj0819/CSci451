@@ -13,90 +13,94 @@
 
 /*
     This program will use the PTHREAD library to create
-    2 threads and mutexes to synchronize them.
+    two std::pthreads and a mutex to synchronize them.
+    This program takes the input file "hw4.in", which is
+    in a format provided in the spec sheet "hw4.txt", and
+    opens it for reading in one thread. This thread locks
+    the mutex, stalling the other thread. The first thread
+    simply stored this integer into a global variable, then
+    unlocks the mutex. This allows the second thread to lock
+    out the first thread and read the global variable. Then,
+    the second thread tests to see if this integer is even 
+    or odd. If even, it writes the integer out twice. If odd,
+    it writes the integer out only once. Then, the second
+    thread unlocks the mutex, allowing the next integer to
+    be read in by thread 1. This process repeats until eof
+    is reached in the inFile handle, which allows the threads
+    to join and lets the main thread close the file handles
+    and exit the program.
 */
 
 #include <cstdio>
 #include <thread>
-#include <string>
 #include <iostream>
 #include <fstream>
-#include <algorithm>
 
 using namespace std;
 
-void downloadNewFile();
-void lookForPolar(const std::string fileText);
-void lookForEasy(const std::string fileText);
+void openForReading(std::ifstream* inFile);
+void writeToFile(std::ofstream* outFile, std::ifstream* inFile);
+
+int currentInt;
+int currentInt_Mutex = 0;
 
 int main(int argc, char *argv[]) 
 {
-    int wordCount = 0;
-    downloadNewFile();
-
     ifstream inFile;
+    ifstream* p_inFile = &inFile;
 
-    inFile.open("hw3-data.txt");
-    if (!inFile) {
-        cerr << "Couldn't open the file. Exiting...";
-        exit(1);
-    }
+    ofstream outFile;
+    ofstream* p_outFile = &outFile;
+    outFile.open("hw4.out");
 
-    string fileWord;
-    string fileText;
+    thread readInFile(openForReading, p_inFile);
+    thread writeOutFile(writeToFile, p_outFile, p_inFile);
 
-    do {
-        if(!(inFile >> fileWord)) { break;}
-        transform(fileWord.begin(), fileWord.end(), fileWord.begin(), ::tolower);
-        fileText.append(fileWord + " ");
-        wordCount++;
-    }
-    while (!inFile.eof());
+    readInFile.join();
+    writeOutFile.join();
+
     inFile.close();
-
-    thread polarThread(lookForPolar, fileText);
-    thread easyThread(lookForEasy, fileText);
-
-    polarThread.join();
-    easyThread.join();
+    outFile.close();
     
     return 0;
 }
 
-void downloadNewFile() {
-    if (FILE *file = fopen("hw3-data.txt", "r")) {
-        fclose(file);
-        system("rm hw3-data.txt");
+void openForReading(std::ifstream* inFile) {
+    inFile->open("hw4.in");
+    if (!*inFile) {
+        cerr << "Couldn't open the file. Exiting...";
+        exit(1);
     }
-    system("wget http://undcemcs01.und.edu/~ronald.marsh/CLASS/CS451/hw3-data.txt");
+    do {
+        while(1) {
+            if (currentInt_Mutex == 0) {
+                break;
+            }
+        }
+        // puts("Mutex locked by THREAD 1");
+        if(!(*inFile >> currentInt)) { 
+            break;
+        }
+        // puts("Mutex unlocked by THREAD 1");
+        currentInt_Mutex = 1;
+    } while (!inFile->eof());
 }
 
-void lookForPolar(const std::string fileText) {
-    puts("Hello from PolarThread!");
-
-    int polarCount = 0;
-    string target ("polar");
-
-    size_t position = fileText.find(target);
-    while (position != string::npos) {
-        position = fileText.find(target,position + 1);
-        polarCount++;
-    }
-
-    printf("PolarThread found %d instances of the word \"polar\"!\n", polarCount);
-}
-
-void lookForEasy(const std::string fileText) {
-    puts("Hello from EasyThread!");
-
-    int easyCount = 0;
-    string target ("easy");
-
-    size_t position = fileText.find(target);
-    while (position != string::npos) {
-        position = fileText.find(target,position + 1);
-        easyCount++;
-    }
-
-    printf("EasyThread found %d instances of the word \"easy\"!\n", easyCount);
+void writeToFile(std::ofstream* outFile, std::ifstream* inFile) {
+    do {
+        while(1) {
+            if (currentInt_Mutex == 1) {
+                break;
+            }
+        }
+        // puts("Mutex locked by THREAD 2");
+        if (currentInt % 2 == 0) {
+            *outFile << currentInt << endl;
+            *outFile << currentInt << endl;
+        } else {
+            *outFile << currentInt << endl;
+        }
+        currentInt_Mutex = 0;
+        // puts("Mutex unlocked by THREAD 2");
+    } while (!inFile->eof());
 }
