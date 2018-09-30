@@ -32,75 +32,82 @@
 
 #include <cstdio>
 #include <thread>
-#include <iostream>
 #include <fstream>
 #include <mutex>
+#include <cstdlib>
 
 using namespace std;
 
-void openForReading(ifstream* inFile);
-void writeToFile(ofstream* outFile, ifstream* inFile);
+void manipulator1();
+void manipulator2();
+void manipulator3();
+void garbageCollector();
 
-int currentInt;
-int currentInt_Mutex = 0;
+struct MemoryPage {
+    int modPID = 0;
+    int R_bit = 0;
+    int W_bit = 0;
+    int isClaimed = 0;
+};
+MemoryPage memoryPages[5000]; 
+
+mutex pageMutex;
 
 int main(int argc, char *argv[]) 
 {
-    ifstream inFile;
-    ifstream* p_inFile = &inFile;
+    srand(1492); // "In 1492, Colombus saild the ocean blue!"
 
-    ofstream outFile;
-    ofstream* p_outFile = &outFile;
-    outFile.open("hw4.out");
+    while(1) {
+        thread m1(manipulator1);
+        thread m2(manipulator2);
+        thread m3(manipulator3);
+        thread gc(garbageCollector);
 
-    thread readInFile(openForReading, p_inFile);
-    thread writeOutFile(writeToFile, p_outFile, p_inFile);
+        m1.join();
+        m2.join();
+        m3.join();
+        gc.join();
+    }
 
-    readInFile.join();
-    writeOutFile.join();
-
-    inFile.close();
-    outFile.close();
-    
     return 0;
 }
 
-void openForReading(ifstream* inFile) {
-    inFile->open("hw4.in");
-    if (!*inFile) {
-        cerr << "Couldn't open the file. Exiting...";
-        exit(1);
-    }
-    do {
-        while(1) {
-            if (currentInt_Mutex == 0) {
-                break;
-            }
-        }
-        // puts("Mutex locked by THREAD 1");
-        if(!(*inFile >> currentInt)) { 
-            break;
-        }
-        // puts("Mutex unlocked by THREAD 1");
-        currentInt_Mutex = 1;
-    } while (!inFile->eof());
+void manipulator1() {
+    int pid = 100;
+    int randPage = rand() % 5000;
+    int randR_bit = rand() % 2;
+    int randW_bit = rand() % 2;
 }
 
-void writeToFile(ofstream* outFile, ifstream* inFile) {
-    do {
-        while(1) {
-            if (currentInt_Mutex == 1) {
-                break;
-            }
-        }
-        // puts("Mutex locked by THREAD 2");
-        if (currentInt % 2 == 0) {
-            *outFile << currentInt << endl;
-            *outFile << currentInt << endl;
-        } else {
-            *outFile << currentInt << endl;
-        }
-        currentInt_Mutex = 0;
-        // puts("Mutex unlocked by THREAD 2");
-    } while (!inFile->eof());
+void manipulator2() {
+    int pid = 200;
+    int randPage = rand() % 5000;
+    int randR_bit = rand() % 2;
+    int randW_bit = rand() % 2;    
+}
+
+void manipulator3() {
+    int pid = 300;
+    int randPage = rand() % 5000;
+    int randR_bit = rand() % 2;
+    int randW_bit = rand() % 2;
+}
+
+void garbageCollector() {
+    
+}
+
+void accessMemoryPage(int pageIndex, int r_bit, int w_bit, int pid) {
+    if (!memoryPages[pageIndex].isClaimed) {
+        lock_guard <mutex> guard(pageMutex);
+        memoryPages[pageIndex].isClaimed = 1;
+        memoryPages[pageIndex].R_bit = r_bit;
+        memoryPages[pageIndex].W_bit = w_bit;
+        memoryPages[pageIndex].modPID = pid;
+        memoryPages[pageIndex].isClaimed = 0;
+    } else {
+        printf("Page Fault: %d\n", pageIndex);
+    }
+
+
 }
