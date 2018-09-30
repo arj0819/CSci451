@@ -1,0 +1,49 @@
+HW-5    CS451   10 points       Due: Monday, October 1, 2018
+
+PART 1.
+-------
+Write a program that uses 4 threads to manipulate the memory
+space using a NRU model.
+
+1. Create a simmulated memory space for 5000 pages. The memory
+must contain the modifying process ID, the R bit, and the M bit.
+(I suggest using a 3 column array to hold the required data).  
+
+2. Three threads (e.g. PID 100, 200 and 300) will each continuously 
+randomly generate a value between 0 and 4999 and a random value of 
+0 or 1. The first random value generated will indicate what page to 
+manipulate. The second random value generated will indicate what to 
+do to that page:
+    0 - means you read from it (set R bit).
+    1 - means you wrote to it (set R and M bits).
+
+3. Obviously, Whenever a thread randomly requests a page, if the 
+page is not claimed by someone else you can simply mark the fields 
+as required. However, if the page is claimed by someone else print 
+out the text "Page fault: N" (where N is tha page number) and move 
+on (ignore this attempt and look for a new random page).
+
+4. The fourth thread will act as a garbage collector. It will continually
+scan the memory space looking for the first instance of the lowest class 
+memory (see class notes). If the page has the R bit set, the thread can 
+simply reset the R bit to 0. If the page has the M bit set, the thread must
+reset the M bit to 0 and delay/sleep for 0.5 second.
+
+5. This may seem like an easy assignment, but you must recognize that the
+fourth thread will occasionally conflict with the other 3 threads (will 
+try to access an array element at the same time). Thus, you ***MUST*** 
+include a mutex(s) to synchronize these threads. Inquiring minds want 
+to know how you will do this!
+
+6. Finally, to ensure that everone's code runs the same, you MUST seed
+the random number generator with the value 1492. Because that is when 
+"Columbus sailed the ocean blue."
+
+REQUIREMENTS:
+------------
+1. Your program must run on Mint.
+
+2. Your full name must appear as a comment at the beginning of your 
+   program.
+
+3. Your source code must be named hw5-yourname.c or hw5-yourname.cpp
