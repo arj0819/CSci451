@@ -42,6 +42,10 @@ void manipulator1();
 void manipulator2();
 void manipulator3();
 void garbageCollector();
+void accessMemoryPage(int pageIndex, int randAccess, int pid);
+
+const int NUM_PAGES = 5000;
+const int RAND_SEED = 1492;
 
 struct MemoryPage {
     int modPID = 0;
@@ -49,24 +53,24 @@ struct MemoryPage {
     int W_bit = 0;
     int isClaimed = 0;
 };
-MemoryPage memoryPages[5000]; 
+MemoryPage memoryPages[NUM_PAGES]; 
 
 mutex pageMutex;
 
 int main(int argc, char *argv[]) 
 {
-    srand(1492); // "In 1492, Colombus saild the ocean blue!"
+    srand(RAND_SEED); // "In 1492, Colombus saild the ocean blue!"
 
     while(1) {
         thread m1(manipulator1);
         thread m2(manipulator2);
         thread m3(manipulator3);
-        thread gc(garbageCollector);
+        // thread gc(garbageCollector);
 
         m1.join();
         m2.join();
         m3.join();
-        gc.join();
+        // gc.join();
     }
 
     return 0;
@@ -74,40 +78,46 @@ int main(int argc, char *argv[])
 
 void manipulator1() {
     int pid = 100;
-    int randPage = rand() % 5000;
-    int randR_bit = rand() % 2;
-    int randW_bit = rand() % 2;
+    int randPage = rand() % NUM_PAGES;
+    int randAccess = rand() % 2;
+    accessMemoryPage(randPage,randAccess,pid);
 }
 
 void manipulator2() {
     int pid = 200;
-    int randPage = rand() % 5000;
-    int randR_bit = rand() % 2;
-    int randW_bit = rand() % 2;    
+    int randPage = rand() % NUM_PAGES;
+    int randAccess = rand() % 2;
+    accessMemoryPage(randPage,randAccess,pid);
 }
 
 void manipulator3() {
     int pid = 300;
-    int randPage = rand() % 5000;
-    int randR_bit = rand() % 2;
-    int randW_bit = rand() % 2;
+    int randPage = rand() % NUM_PAGES;
+    int randAccess = rand() % 2;
+    accessMemoryPage(randPage,randAccess,pid);
 }
 
 void garbageCollector() {
     
 }
 
-void accessMemoryPage(int pageIndex, int r_bit, int w_bit, int pid) {
+void accessMemoryPage(int pageIndex, int randAccess, int pid) {
     if (!memoryPages[pageIndex].isClaimed) {
         lock_guard <mutex> guard(pageMutex);
         memoryPages[pageIndex].isClaimed = 1;
+        int r_bit = 0;
+        int w_bit = 0;
+        if (randAccess) {
+            r_bit = 1;
+            w_bit = 1;
+        } else {
+            r_bit = 1;
+        }
         memoryPages[pageIndex].R_bit = r_bit;
         memoryPages[pageIndex].W_bit = w_bit;
         memoryPages[pageIndex].modPID = pid;
-        memoryPages[pageIndex].isClaimed = 0;
+        printf("Page Accessed: %d\nR bit: %d\nW bit: %d\nPID: %d\n\n",pageIndex,r_bit,w_bit,pid);
     } else {
         printf("Page Fault: %d\n", pageIndex);
     }
-
-
 }
