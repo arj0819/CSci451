@@ -46,6 +46,7 @@ void accessMemoryPage(int pageIndex, int randAccess, int pid);
 
 const int NUM_PAGES = 5000;
 const int RAND_SEED = 1492;
+int pageFaultOccurred = 0;
 
 struct MemoryPage {
     int modPID = 0;
@@ -98,28 +99,30 @@ void manipulator3() {
 }
 
 void garbageCollector() {
-    for (int i = 0; i < NUM_PAGES; i++) {
-        if (memoryPages[i].isClaimed) {
-            // printf("Garbage Collector is attempting to access Page %d\n\n",i);
-            lock_guard <mutex> guard(pageMutex);
-            // puts("GARBAGE");
-            // printf("Page: %d\nR bit: %d\nM bit: %d\nPID: %d\n",i,memoryPages[i].R_bit,memoryPages[i].M_bit,memoryPages[i].modPID);
-            memoryPages[i].isClaimed = 0;
-            memoryPages[i].modPID = 0;
-            if (memoryPages[i].M_bit == 1) {
-                memoryPages[i].R_bit = 0;
-                memoryPages[i].M_bit = 0;
-                // puts("SLEEP (M_Bit = 1)");
-                this_thread::sleep_for(chrono::milliseconds(0));
-            // printf("Page: %d\nR bit: %d\nM bit: %d\nPID: %d\n",i,memoryPages[i].R_bit,memoryPages[i].M_bit,memoryPages[i].modPID);
+    if (pageFaultOccurred) {
+        for (int i = 0; i < NUM_PAGES; i++) {
+            if (memoryPages[i].isClaimed) {
+                // printf("Garbage Collector is attempting to access Page %d\n\n",i);
+                lock_guard <mutex> guard(pageMutex);
+                // puts("GARBAGE");
+                // printf("Page: %d\nR bit: %d\nM bit: %d\nPID: %d\n",i,memoryPages[i].R_bit,memoryPages[i].M_bit,memoryPages[i].modPID);
+                memoryPages[i].isClaimed = 0;
+                memoryPages[i].modPID = 0;
+                if (memoryPages[i].M_bit == 1) {
+                    memoryPages[i].R_bit = 0;
+                    memoryPages[i].M_bit = 0;
+                    // puts("SLEEP (M_Bit = 1)");
+                    this_thread::sleep_for(chrono::milliseconds(500));
+                // printf("Page: %d\nR bit: %d\nM bit: %d\nPID: %d\n",i,memoryPages[i].R_bit,memoryPages[i].M_bit,memoryPages[i].modPID);
+                } else {
+                    // puts("NO SLEEP (M_Bit = 0)");
+                    memoryPages[i].R_bit = 0;
+                }
+                // printf("Garbage Collector is releasing Page %d\n\n",i);
             } else {
-                // puts("NO SLEEP (M_Bit = 0)");
-                memoryPages[i].R_bit = 0;
-            }
-            // printf("Garbage Collector is releasing Page %d\n\n",i);
-        } else {
 
-            // printf("No garbage found on Page %d\n\n",i);
+                // printf("No garbage found on Page %d\n\n",i);
+            }
         }
     }
 }
@@ -145,6 +148,7 @@ void accessMemoryPage(int pageIndex, int randAccess, int pid) {
         // printf("Accessor %d is releasing Page %d\n\n",pid,pageIndex);
     } else {
         printf("\nPage Fault: %d\n", pageIndex);
+        pageFaultOccurred = 1;
         // printf("Accessor %d was denied access to Page %d\n\n",pid,pageIndex);
     }
 }
