@@ -113,6 +113,7 @@ void garbageCollector() {
                     memoryPages[i].M_bit = 0;
                     // puts("SLEEP (M_Bit = 1)");
                     this_thread::sleep_for(chrono::milliseconds(500));
+                    break;
                 // printf("Page: %d\nR bit: %d\nM bit: %d\nPID: %d\n",i,memoryPages[i].R_bit,memoryPages[i].M_bit,memoryPages[i].modPID);
                 } else {
                     // puts("NO SLEEP (M_Bit = 0)");
@@ -147,7 +148,7 @@ void accessMemoryPage(int pageIndex, int randAccess, int pid) {
         // printf("Page: %d\nR bit: %d\nM bit: %d\nPID: %d\n\n",pageIndex,r_bit,m_bit,pid);
         // printf("Accessor %d is releasing Page %d\n\n",pid,pageIndex);
     } else {
-        printf("\nPage Fault: %d\n", pageIndex);
+        printf("Page Fault: %d\n", pageIndex);
         pageFaultOccurred = 1;
         // printf("Accessor %d was denied access to Page %d\n\n",pid,pageIndex);
     }
