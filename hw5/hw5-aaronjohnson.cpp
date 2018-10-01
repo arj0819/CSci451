@@ -28,6 +28,9 @@
     This program basically simulates a memory paging
     scheme that uses an NRU page replacement algorithm
     to swap memory pages in and out of faster memory.
+    If a page is claimed by the garbage collector and
+    a manipulator attempts to access this page, a page
+    fault is printed to std out.
 */
 
 #include <cstdio>
@@ -46,7 +49,6 @@ void accessMemoryPage(int pageIndex, int randAccess, int pid);
 
 const int NUM_PAGES = 5000;
 const int RAND_SEED = 1492;
-int pageFaultOccurred = 0;
 
 struct MemoryPage {
     int modPID = 0;
@@ -99,57 +101,45 @@ void manipulator3() {
 }
 
 void garbageCollector() {
-    if (pageFaultOccurred) {
-        for (int i = 0; i < NUM_PAGES; i++) {
-            if (memoryPages[i].isClaimed) {
-                // printf("Garbage Collector is attempting to access Page %d\n\n",i);
-                lock_guard <mutex> guard(pageMutex);
-                // puts("GARBAGE");
-                // printf("Page: %d\nR bit: %d\nM bit: %d\nPID: %d\n",i,memoryPages[i].R_bit,memoryPages[i].M_bit,memoryPages[i].modPID);
-                memoryPages[i].isClaimed = 0;
-                memoryPages[i].modPID = 0;
-                if (memoryPages[i].M_bit == 1) {
-                    memoryPages[i].R_bit = 0;
-                    memoryPages[i].M_bit = 0;
-                    // puts("SLEEP (M_Bit = 1)");
-                    this_thread::sleep_for(chrono::milliseconds(500));
-                    break;
-                // printf("Page: %d\nR bit: %d\nM bit: %d\nPID: %d\n",i,memoryPages[i].R_bit,memoryPages[i].M_bit,memoryPages[i].modPID);
-                } else {
-                    // puts("NO SLEEP (M_Bit = 0)");
-                    memoryPages[i].R_bit = 0;
-                }
-                // printf("Garbage Collector is releasing Page %d\n\n",i);
+    for (int i = 0; i < NUM_PAGES; i++) {
+        int sleepRequired = 0;
+        if (memoryPages[i].isClaimed) {
+            pageMutex.lock();
+            if (memoryPages[i].M_bit == 1) {
+                memoryPages[i].R_bit = 0;
+                memoryPages[i].M_bit = 0;
+                sleepRequired = 1;
             } else {
-
-                // printf("No garbage found on Page %d\n\n",i);
+                memoryPages[i].R_bit = 0;
+            }
+            pageMutex.unlock();
+            if (sleepRequired) {
+                this_thread::sleep_for(chrono::milliseconds(500));
             }
         }
     }
 }
 
 void accessMemoryPage(int pageIndex, int randAccess, int pid) {
-    if (!memoryPages[pageIndex].isClaimed) {
-        // printf("Accessor %d is attempting to access Page %d\n\n",pid,pageIndex);
-        lock_guard <mutex> guard(pageMutex);
-        memoryPages[pageIndex].isClaimed = 1;
-        int r_bit = 0;
-        int m_bit = 0;
-        if (randAccess == 1) {
-            r_bit = 1;
-            m_bit = 1;
+    if (!memoryPages[pageIndex].isClaimed || memoryPages[pageIndex].modPID == pid) {
+        if(pageMutex.try_lock()) {
+            memoryPages[pageIndex].isClaimed = 1;
+            int r_bit = 0;
+            int m_bit = 0;
+            if (randAccess == 1) {
+                r_bit = 1;
+                m_bit = 1;
+            } else {
+                r_bit = 1;
+            }
+            memoryPages[pageIndex].R_bit = r_bit;
+            memoryPages[pageIndex].M_bit = m_bit;
+            memoryPages[pageIndex].modPID = pid;
+            pageMutex.unlock();
         } else {
-            r_bit = 1;
+            return;
         }
-        memoryPages[pageIndex].R_bit = r_bit;
-        memoryPages[pageIndex].M_bit = m_bit;
-        memoryPages[pageIndex].modPID = pid;
-        // puts("ACCESS");
-        // printf("Page: %d\nR bit: %d\nM bit: %d\nPID: %d\n\n",pageIndex,r_bit,m_bit,pid);
-        // printf("Accessor %d is releasing Page %d\n\n",pid,pageIndex);
     } else {
         printf("Page Fault: %d\n", pageIndex);
-        pageFaultOccurred = 1;
-        // printf("Accessor %d was denied access to Page %d\n\n",pid,pageIndex);
     }
 }
