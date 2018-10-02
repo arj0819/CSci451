@@ -13,6 +13,7 @@
 #include <cstdio>
 #include <fstream>
 #include <cstdlib>
+#include <semaphore.h>
 
 using namespace std;
 
