@@ -1,3 +1,5 @@
 #include <semaphore.h>
-sem_t semaphore1;
-sem_t semaphore2;
+#ifndef SEMAPHORE_1 SEMAPHORE_2
+#define SEMAPHORE_1 "sem1"
+#define SEMAPHORE_2 "sem2"
+#endif
