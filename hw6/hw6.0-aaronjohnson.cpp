@@ -25,6 +25,7 @@ int main(int argc, char *argv[]) {
     int semProcessCounter_val;
 
     // try to open up the semaphores
+    // sem_open(sem name, create if not exist, mode(access permissions(rwx)), initial value)
     sem_t* semOrder = sem_open(SEM_ORDER, O_CREAT, 0644, 0);
     sem_t* semOutOfSequence = sem_open(SEM_OUT_OF_SEQUENCE, O_CREAT, 0644, 0);
     sem_t* semProcessCounter = sem_open(SEM_PROCESS_COUNTER, O_CREAT, 0644, 0);
