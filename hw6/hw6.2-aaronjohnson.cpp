@@ -6,8 +6,8 @@
 
 /*
     This is program 3 of 4 for this assignment. This program
-    will always be executed first and will create a set of
-    semaphores for the rest of the programs to use.
+    only prints a message if it is executed immediately after
+    program 2.
 */
 
 #include <cstdio>
