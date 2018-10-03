@@ -1,16 +1,16 @@
 all: program0 program1 program2 program3
 
 program0:
-	g++ hw6.0-aaronjohnson.cpp -l pthread -o hw6.0-aaronjohnson
+	g++ -std=c++11 program0.cpp -l pthread -o program0
 
 program1:
-	g++ hw6.1-aaronjohnson.cpp -l pthread -o hw6.1-aaronjohnson
+	g++ -std=c++11 program1.cpp -l pthread -o program1
 
 program2:
-	g++ hw6.2-aaronjohnson.cpp -l pthread -o hw6.2-aaronjohnson
+	g++ -std=c++11 program2.cpp -l pthread -o program2
 
 program3:
-	g++ hw6.3-aaronjohnson.cpp -l pthread -o hw6.3-aaronjohnson
+	g++ -std=c++11 program3.cpp -l pthread -o program3
 
 clean:
-	rm hw6.0-aaronjohnson hw6.1-aaronjohnson hw6.2-aaronjohnson hw6.3-aaronjohnson
+	rm program0 program1 program2 program3

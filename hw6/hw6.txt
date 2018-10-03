@@ -59,3 +59,15 @@ REQUIREMENTS:
    program.
 
 3. Your source code must be named hw6-yourname.c or hw6-yourname.cpp
+
+(AFTER CLASS ON WED, OCT 3, THE REQUIREMENTS CHANGED TO WHAT IS BELOW)
+
+1. Your program must run on Mint.
+
+2. Your full name must appear as a comment at the beginning of your 
+   program.
+
+3. Make a tarball of the 4 programs and name them program0, program1, 
+   program2, and program3
+
+4. Your tarball must be named hw6-yourname.tar
