@@ -38,11 +38,11 @@ struct MemoryPage {
 MemoryPage memoryPages[NUM_PAGES]; 
 
 mutex driveMutex;
-array <string, 5> driveChars = {string("a"),
-                                string("b"),
-                                string("c"),
-                                string("d"),
-                                string("e")};
+array <string, 5> driveChars = {string(""),
+                                string(""),
+                                string(""),
+                                string(""),
+                                string("")};
 string dataBlock;
 
 int main(int argc, char *argv[]) 
@@ -59,10 +59,15 @@ int main(int argc, char *argv[])
     //     d3.join();
     //     d4.join();
     //     d5.join();
-
-        for (const auto& driveChar : driveChars) {
-            dataBlock.append(driveChar);
+        for (int i = 0; i < driveChars.size(); i++) {
+            string temp("a");
+            driveChars[i] = temp;
+            dataBlock.append(driveChars[i]);
         }
+        // for (const auto& driveChar : driveChars) {
+        //     driveChar = temp;
+        //     dataBlock.append(driveChar);
+        // }
         cout << dataBlock << endl;
     // }
 
