@@ -1,0 +1,121 @@
+HW-8	CSci-451	20 points		Due: Octoberray 29, 2018 
+
+This assignment is to honor the Zucca Gigantopithecus (great pumpkin), 
+who flies through the air on Halloween night delivering homework solutions 
+to computer science students throughout the world. Of course, he only 
+visits the most sincere computer science students, the rest have to 
+complete their own assignments. How sincere are you?
+
+Program 1 
+---------
+Program 1 will read a text file called "input.data" and extract the 
+words. Note that words will be separated only by spaces. Commas, periods,
+etc will be considered part of a word. As each word is extracted, 
+program 1 will write the words (1 word per line) out to a temporary 
+file called temp1.data. For example:
+ 
+input.data:
+	It is the Zucca Gigantopithecus, or Great Pumpkin, Charlie Brown. 
+
+temp1.data:
+	It 
+	is 
+	the 
+	Zucca 
+	Gigantopithecus, 
+	or
+	Great 
+	Pumpkin, 
+	Charlie 
+	Brown.
+
+Note that all punctuation marks will remain attached to their words (only
+spaces separate words).
+
+Program 2
+---------
+Program 2 will read temp1.data and convert each word into Pig Latin 
+(rules shown below) and write the converted word to another temp file 
+(call it temp2.data) with 1 word per line. Program 2 will also keep track 
+of how many words of each form (2 types possible) were converted and write
+those values to 2 other files (call them shared1.dat and shared2.dat). For
+example:
+
+temp1.data:
+	It 
+	is 
+	the 
+	Zucca 
+	Gigantopithecus, 
+	or
+	Great 
+	Pumpkin, 
+	Charlie 
+	Brown.
+
+temp2.data:
+	Itray 
+	isray 
+	hetay 
+	uccaZay 
+	igantopithecusGay, 
+	orray
+	reatGay
+	umpkinPay, 
+	harlieCay 
+	rownBay.
+
+shared1.dat:
+	3
+
+shared2.dat:
+	7
+
+Pig Latin rules:
+1) Type 1: For all words beginning with a vowel add the text "ray" to the 
+end of the word. For example: "and" becomes "andray," "end" becomes "endray", 
+etc. Note that any punctuation marks must remain at the end of the newly 
+formed word.
+
+2) Type 2: For all words beginning with consonants move the first letter to 
+the end of the word and add "ay". For example "number" becomes "umbernay," 
+"letter" becomes "etterlay," etc. Note that any punctuation marks must 
+remain at the end of the newly formed word.
+
+Program 3
+---------
+Program 3 will open shared1.dat and shared2.dat files and display the values 
+contained on the screen using the format:
+	Type 1: word_count
+	Type 2: word_count
+
+Program 3 will also open temp2.data and reconstruct the original document 
+(multiple words per line) and write it out to temp3.data. For example:
+
+temp2.data:
+	Itray 
+	isray 
+	hetay 
+	uccaZay 
+	igantopithecusGay, 
+	orray
+	reatGay
+	umpkinPay, 
+	harlieCay 
+	rownBay.
+
+temp3.data:
+	Itray isray hetay uccaZay igantopithecusGay, orray reatGay umpkinPay, 
+	harlieCay rownBay.
+
+I suggest you look into the lower level C functions for reading and writing files
+(see the UNIX System calls handout) as you will need these for future revisions.
+
+REQUIREMENTS:
+-------------
+1. Your program must run on Mint.
+
+2. Your full name must appear as a comment at the beginning of your 
+   program.
+
+3. Your source code must be in a tarball named hw8-yourname.tar
