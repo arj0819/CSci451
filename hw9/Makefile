@@ -10,18 +10,21 @@ sampler:
 semaphoreResetter:
 	g++ -std=c++11 resetSemaphores.cpp -l pthread -o resetSemaphores
 
-run: runProducer1 runProducer2 runProducer3 runSampler
-runProducer1:
-	./producer1
-runProducer2:
-	./producer2
-runProducer3:
-	./producer3
-runSampler:
-	./sampler
+run:
+	./producer1 & ./producer2 & ./producer3 & ./sampler
 
-clean: resetSemaphores cleanAll
+stop: resetSemaphores killProducers
+
+clean: resetSemaphores killProducers cleanAll
 resetSemaphores:
 	./resetSemaphores
 cleanAll:
-	rm producer1 producer2 producer3 sampler resetSemaphores
+	rm producer1 producer2 producer3 sampler resetSemaphores output*.txt
+	
+killProducers: killP1 killP2 killP3
+killP1:
+	pkill producer1 || true
+killP2:
+	pkill producer2 || true
+killP3:
+	pkill producer3 || true
