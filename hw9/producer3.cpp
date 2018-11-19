@@ -1,6 +1,14 @@
-/************************************************/
-/* Produces a character once every 120 seconds. */
-/************************************************/
+//Author:     Aaron Johnson
+//Email:      aaron.r.johnson@und.edu
+//Course:     CSci451
+//Instructor: Dr. Ronald Marsh
+//Assignment: hw9
+
+/*
+    This program will generate a character
+    onve every 120 seconds.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,7 +36,7 @@ int main(void) {
            fprintf(output, "%c\n", i);
            fclose(output);
            sem_post(semOut3);
-           sleep(30);
+           sleep(120);
        }
     }
     return 1;

@@ -1,6 +1,14 @@
-/************************************************/
-/* Produces an even value once every second.    */
-/************************************************/
+//Author:     Aaron Johnson
+//Email:      aaron.r.johnson@und.edu
+//Course:     CSci451
+//Instructor: Dr. Ronald Marsh
+//Assignment: hw9
+
+/*
+    This program will generate an even value
+    onve every second.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

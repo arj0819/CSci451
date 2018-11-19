@@ -1,6 +1,14 @@
-/************************************************/
-/* Produces an odd value once every 30 seconds. */
-/************************************************/
+//Author:     Aaron Johnson
+//Email:      aaron.r.johnson@und.edu
+//Course:     CSci451
+//Instructor: Dr. Ronald Marsh
+//Assignment: hw9
+
+/*
+    This program will generate an odd value
+    onve every 30 seconds.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,7 +36,7 @@ int main(void) {
            fprintf(output, "%d\n", i);
            fclose(output);
            sem_post(semOut2);
-           sleep(10);
+           sleep(30);
        }
     }
     return 1;

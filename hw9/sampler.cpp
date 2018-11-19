@@ -12,10 +12,10 @@
     a new output file. Semaphores will be used to ensure
     no duplicates and proper concatenation order occur.
 
-    Please start executing each producer in order first
-    before starting the execution of this program. Use
-    the included Makefile by typing "make run" in the 
-    command line to do so. 
+    HOW TO USE
+    - Start by using the Makefile and run "make all" 
+    in the terminal. 
+    
 
     This program will not terminate unless explicitly
     killed during execution by using a ctrl + C.
@@ -41,8 +41,12 @@ void handleOut3(sem_t*,sem_t*);
 //int semOut3_val;
 //int semOrder_val;
 
-// The global consecutive chars from each output file
-string consecutiveOutChars;
+// The global current chars from each output file
+string Out1CurrentChar = "";
+string Out2CurrentChar = "";
+string Out3CurrentChar = "";
+// The global current consecutive chars from each output file
+string currentConsecutiveOutChars = "";
 
 // ifstreams for reading output files 1, 2, and 3
 ifstream in1;
@@ -74,12 +78,6 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    // get the value of each semaphore and store in previously declared ints
-    // sem_getvalue(semOut1,&semOut1_val);
-    // sem_getvalue(semOut2,&semOut2_val);
-    // sem_getvalue(semOut3,&semOut3_val);
-    // sem_getvalue(semOrder,&semOrder_val);
-
     while(1) {
         // create the threads for each output file
         thread t1(handleOut1,semOut1,semOrder);
@@ -90,14 +88,26 @@ int main(int argc, char *argv[]) {
         t1.detach();
         t2.detach();
         t3.detach();
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    }
+        // sleeping for 0.5 seconds (Nyquist Sampling Rate in this case)
+        // is too long and causes some chars from output1.txt to be missed.
+        // This is due to the logic below that writes the concatenation of
+        // each output file char to output4.txt. So, I've shortened the wait
+        // time to less than the Nyquist Sampling Rate to 250 milliseconds,
+        // which allows enough time to capture the dataset in the format
+        // specified by the project specifications.
+        std::this_thread::sleep_for(std::chrono::milliseconds(250));
 
-    // optional debugging printouts
-    // sem_getvalue(semOutOfSequence,&semOutOfSequence_val);
-    // printf("Value of semOrder:          %d\n", semOrder_val);
-    // printf("Value of semOutOfSequence:  %d\n", semOutOfSequence_val);
-    // printf("Value of semProcessCounter: %d\n", semProcessCounter_val);
+        string nextConsecutiveOutChars = "";
+        nextConsecutiveOutChars = Out1CurrentChar + Out2CurrentChar + Out3CurrentChar;
+        if (nextConsecutiveOutChars != currentConsecutiveOutChars) {
+            if (Out3CurrentChar != "") {
+                currentConsecutiveOutChars = nextConsecutiveOutChars;
+                p_out4->open("output4.txt", std::ios_base::app);
+                *p_out4 << currentConsecutiveOutChars << endl;
+                p_out4->close();
+            }
+        }
+    }
 
     return 0;
 }
@@ -112,9 +122,14 @@ void handleOut1(sem_t* semOut1, sem_t* semOrder) {
         puts("SemOrder = 1");
         if (sem_wait(semOut1) == 0) {
             puts("semOut 1 is ready");
-            p_in1->open("output1.txt");
-            p_in1->close();
 
+            p_in1->open("output1.txt");
+            string nextChar;
+            *p_in1 >> nextChar;
+            if (nextChar != Out1CurrentChar) {
+                Out1CurrentChar = nextChar;
+            }
+            p_in1->close();
 
             sem_post(semOut1);
             sem_post(semOrder);
@@ -132,9 +147,14 @@ void handleOut2(sem_t* semOut2, sem_t* semOrder) {
         puts("SemOrder = 2");
         if (sem_wait(semOut2) == 0) {
             puts("semOut 2 is ready");
-            p_in2->open("output2.txt");
-            p_in2->close();
 
+            p_in2->open("output2.txt");
+            string nextChar;
+            *p_in2 >> nextChar;
+            if (nextChar != Out2CurrentChar) {
+                Out2CurrentChar = nextChar;
+            }
+            p_in2->close();
 
             sem_post(semOut2);
             sem_post(semOrder);
@@ -152,9 +172,14 @@ void handleOut3(sem_t* semOut3, sem_t* semOrder) {
         puts("SemOrder = 3");
         if (sem_wait(semOut3) == 0) {
             puts("semOut 3 is ready");
-            p_in3->open("output3.txt");
-            p_in3->close();
 
+            p_in3->open("output3.txt");
+            string nextChar;
+            *p_in3 >> nextChar;
+            if (nextChar != Out3CurrentChar) {
+                Out3CurrentChar = nextChar;
+            }
+            p_in3->close();
 
             sem_post(semOut3);
             sem_wait(semOrder);
