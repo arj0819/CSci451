@@ -1,0 +1,127 @@
+HW-9		CS451	20 points	Due: Monday, Nov. 19
+
+---------------------------------------------------------------
+ADDITION of semaphores and corrected file naming.
+
+It appears file locking does not work well in Mint. Therefore, 
+you are allowed to use a semaphore (system V or Posix) to protect
+each producer's critical section:
+
+           output = fopen("./output2.txt", "w");
+           fprintf(output, "%d\n", i);
+           fclose(output);
+
+ADDITION of semaphores and corrected file naming.
+---------------------------------------------------------------
+
+You have 3 processes running that are producing data by writing 
+that data to 3 separate files. In our case, the source for the 
+test processes are provided below. Note that each process 
+produces data at a different rate.
+
+/************************************************/
+/* Produces an even value once every second.    */
+/************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+int main(void) {
+int i;
+char number;
+FILE *output;
+    while (1) {
+       for (i = 0; i < 10; i+=2) {
+           output = fopen("./output1.txt", "w");
+           fprintf(output, "%d\n", i);
+           fclose(output);
+           sleep(1);
+       }
+    }
+    return 1;
+}
+
+
+/************************************************/
+/* Produces an odd value once every 30 seconds. */
+/************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+int main(void) {
+int i;
+char number;
+FILE *output;
+    while (1) {
+       for (i = 1; i < 10; i+=2) {
+           output = fopen("./output2.txt", "w");
+           fprintf(output, "%d\n", i);
+           fclose(output);
+           sleep(30);
+       }
+    }
+    return 1;
+}
+
+
+/************************************************/
+/* Produces a character once every 120 seconds. */
+/************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+int main(void) {
+int i;
+char number;
+FILE *output;
+    while (1) {
+       for (i = 58; i < 127; i++) {
+           output = fopen("./output3.txt", "w");
+           fprintf(output, "%c\n", i);
+           fclose(output);
+           sleep(120);
+       }
+    }
+    return 1;
+}
+
+Your job is to create a fourth program that samples the 3 output 
+files at 0.5 second intervals (the Nyquist sample rate – ie twice 
+the highest production rate) and produces a new output (output4.txt) 
+that is a combination of the 3 data streams. There are several 
+problems, however:
+
+1. You MUST use separate detached p_threads (in the fourth program) 
+to monitor the 3 producers' output files and you MUST assume that on 
+occasion any output file may be unreadable as it is being written 
+to by the producer (PS This is why we sample at twice the production 
+rate). You will want to check for locked files, in fact, doing so is
+a poor man's semaphore.
+
+2. You must compile the resulting data such that it appears in order 
+(data from output1.txt, data from output2.txt, and data from output3.txt) 
+and write that data to output4.txt such that a history of all data 
+generated is provided in output4.txt (ie output4.txt cannot just contain 
+the most recent datasets). In addition, output4.txt cannot contain more
+than two consecutive duplicated data (the Nyquist sampling could produce
+two consecutive duplicated data). You may want to use mutexes to manage 
+this.
+
+Notes: 
+------
+1) Only the contents of the three producers will change when we 
+   test your code. The data generation rate and output filenames 
+   will remain the same.
+
+2) Once you start your threads you cannot control them with pthread_join. 
+
+REQUIREMENTS:
+-------------
+1. Your program must run on Linux Mint in Leonard 110 or 112.
+
+2. Your full name must appear as a comment at the beginning of your 
+   program.
+
+3. Your tarball must be named hw9-yourname.tar
