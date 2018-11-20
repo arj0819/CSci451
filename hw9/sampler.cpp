@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
 
         // PLEASE NOTE THAT I UNDERSTAND IT'S SUPPOSED TO BE 0.5 SECONDS.
         // HOWEVER, DUE TO MY TESTING, THIS DELAY IS TOO LONG AND CAUSES
-        // CHARS TO BE MISSED. CHANGE THE DELAY BACK TO 0.5 YOURSELF IF
+        // CHARS TO BE MISSED. YOU MAY CHANGE THE DELAY BACK TO 0.5 IF
         // YOU FEEL THE NEED TO VERIFY.
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
     }
