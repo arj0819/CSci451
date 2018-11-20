@@ -15,9 +15,11 @@ run:
 
 stop: resetSemaphores killProducers
 
-clean: resetSemaphores killProducers cleanAll
-resetSemaphores:
+clean: stop cleanAll
+
+resetSemaphores: 
 	./resetSemaphores
+
 cleanAll:
 	rm producer1 producer2 producer3 sampler resetSemaphores output*.txt
 	
@@ -28,3 +30,5 @@ killP2:
 	pkill producer2 || true
 killP3:
 	pkill producer3 || true
+
+.PHONY: resetSemaphores

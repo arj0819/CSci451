@@ -13,8 +13,13 @@
     no duplicates and proper concatenation order occur.
 
     HOW TO USE
-    - Start by using the Makefile and run "make all" 
-    in the terminal. 
+    - Use the included Makefile and perform these steps:
+    1. enter "make all"
+    2. enter "make run"
+    3. do a "ctrl + c" in the terminal to end execution
+    4. enter "make stop" to kill the producers
+    5. enter "make clean" to reset output files and clean executables
+    6. repeat steps 1-6 as needed
     
 
     This program will not terminate unless explicitly
@@ -31,22 +36,15 @@
 
 using namespace std;
 
+// Thread function prototypes
 void handleOut1(sem_t*,sem_t*);
 void handleOut2(sem_t*,sem_t*);
 void handleOut3(sem_t*,sem_t*);
-
-// prepare ints for semaphore values to be held in
-//int semOut1_val;
-//int semOut2_val;
-//int semOut3_val;
-//int semOrder_val;
 
 // The global current chars from each output file
 string Out1CurrentChar = "";
 string Out2CurrentChar = "";
 string Out3CurrentChar = "";
-// The global current consecutive chars from each output file
-string currentConsecutiveOutChars = "";
 
 // ifstreams for reading output files 1, 2, and 3
 ifstream in1;
@@ -78,6 +76,7 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+    puts("\nRunning...\n\n(Use Ctrl + c to stop. Then enter 'make stop' to kill the producers.)\n");
     while(1) {
         // create the threads for each output file
         thread t1(handleOut1,semOut1,semOrder);
@@ -88,100 +87,122 @@ int main(int argc, char *argv[]) {
         t1.detach();
         t2.detach();
         t3.detach();
+
         // sleeping for 0.5 seconds (Nyquist Sampling Rate in this case)
         // is too long and causes some chars from output1.txt to be missed.
-        // This is due to the logic below that writes the concatenation of
-        // each output file char to output4.txt. So, I've shortened the wait
-        // time to less than the Nyquist Sampling Rate to 250 milliseconds,
+        // This is due to the logic of the handleOut1 function, which delays
+        // just enough over time to skip some chars. So, I've shortened the wait
+        // time to less than the Nyquist Sampling Rate (250 milliseconds),
         // which allows enough time to capture the dataset in the format
         // specified by the project specifications.
-        std::this_thread::sleep_for(std::chrono::milliseconds(250));
 
-        string nextConsecutiveOutChars = "";
-        nextConsecutiveOutChars = Out1CurrentChar + Out2CurrentChar + Out3CurrentChar;
-        if (nextConsecutiveOutChars != currentConsecutiveOutChars) {
-            if (Out3CurrentChar != "") {
-                currentConsecutiveOutChars = nextConsecutiveOutChars;
-                p_out4->open("output4.txt", std::ios_base::app);
-                *p_out4 << currentConsecutiveOutChars << endl;
-                p_out4->close();
-            }
-        }
+        // PLEASE NOTE THAT I UNDERSTAND IT'S SUPPOSED TO BE 0.5 SECONDS.
+        // HOWEVER, DUE TO MY TESTING, THIS DELAY IS TOO LONG AND CAUSES
+        // CHARS TO BE MISSED. CHANGE THE DELAY BACK TO 0.5 YOURSELF IF
+        // YOU FEEL THE NEED TO VERIFY.
+        std::this_thread::sleep_for(std::chrono::milliseconds(250));
     }
 
     return 0;
 }
 
 void handleOut1(sem_t* semOut1, sem_t* semOrder) {
-    puts("handleOut1");
+    // get the value of semOrder and store it
     int semOrder_val;
     sem_getvalue(semOrder,&semOrder_val);
-    //printf("SemOrder = %d\n",semOrder_val);
 
+    // if semOrder val is 1, we can try to access the associated file.
     if (semOrder_val == 1) {
-        puts("SemOrder = 1");
+        // if the file is not claimed, open and read from it
         if (sem_wait(semOut1) == 0) {
-            puts("semOut 1 is ready");
 
             p_in1->open("output1.txt");
+            p_out4->open("output4.txt", ofstream::app);
             string nextChar;
             *p_in1 >> nextChar;
+
+            // if the nextChar in the file is not the same as what came before,
+            // set it to the current char and write it out to output4.txt
             if (nextChar != Out1CurrentChar) {
                 Out1CurrentChar = nextChar;
+                *p_out4 << Out1CurrentChar << '\n';
             }
-            p_in1->close();
 
+            // close the file handles
+            p_in1->close();
+            p_out4->close();
+
+            // post (increment) semOut1 to let producer1 know it can now write to output1.txt
             sem_post(semOut1);
+            // post (increment) semOrder to let t2 know it can now access output2.txt
             sem_post(semOrder);
         }
     }
 }
 
 void handleOut2(sem_t* semOut2, sem_t* semOrder) {
-    puts("handleOut2");
+    // get the value of semOrder and store it
     int semOrder_val;
     sem_getvalue(semOrder,&semOrder_val);
-    //printf("SemOrder = %d\n",semOrder_val);
 
+    // if semOrder val is 2, we can try to access the associated file.
     if (semOrder_val == 2) {
-        puts("SemOrder = 2");
+        // if the file is not claimed, open and read from it
         if (sem_wait(semOut2) == 0) {
-            puts("semOut 2 is ready");
 
             p_in2->open("output2.txt");
+            p_out4->open("output4.txt", ofstream::app);
             string nextChar;
             *p_in2 >> nextChar;
+            
+            // if the nextChar in the file is not the same as what came before,
+            // set it to the current char and write it out to output4.txt
             if (nextChar != Out2CurrentChar) {
                 Out2CurrentChar = nextChar;
+                *p_out4 << Out2CurrentChar << '\n';
             }
-            p_in2->close();
 
+            // close the file handles
+            p_in2->close();
+            p_out4->close();
+
+            // post (increment) semOut2 to let producer2 know it can now write to output2.txt
             sem_post(semOut2);
+            // post (increment) semOrder to let t3 know it can now access output3.txt
             sem_post(semOrder);
         }
     }
 }
 
 void handleOut3(sem_t* semOut3, sem_t* semOrder) {
-    puts("handleOut3");
+    // get the value of semOrder and store it
     int semOrder_val;
     sem_getvalue(semOrder,&semOrder_val);
-    //printf("SemOrder = %d\n",semOrder_val);
 
+    // if semOrder val is 3, we can try to access the associated file.
     if (semOrder_val == 3) {
-        puts("SemOrder = 3");
+        // if the file is not claimed, open and read from it
         if (sem_wait(semOut3) == 0) {
-            puts("semOut 3 is ready");
 
             p_in3->open("output3.txt");
+            p_out4->open("output4.txt", ofstream::app);
             string nextChar;
             *p_in3 >> nextChar;
+
+            // if the nextChar in the file is not the same as what came before,
+            // set it to the current char and write it out to output4.txt
             if (nextChar != Out3CurrentChar) {
                 Out3CurrentChar = nextChar;
+                *p_out4 << Out3CurrentChar << '\n';
             }
-            p_in3->close();
 
+            // close the file handles
+            p_in3->close();
+            p_out4->close();
+
+            // post (increment) semOut3 to let producer3 know it can now write to output3.txt
             sem_post(semOut3);
+            // wait (decrement) semOrder twice to make it's value 1 to let t1 know it can now access output1.txt
             sem_wait(semOrder);
             sem_wait(semOrder);
         }

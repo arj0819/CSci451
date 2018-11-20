@@ -12,15 +12,17 @@ int main(int argc, char *argv[]) {
 
     // exit the program if open failed
     if(!semOut1 || !semOut2 || !semOut3 || !semOrder) {
-        puts("Could not open semaphores.\nPlease initialize them by running the program.");
+        puts("Could not open semaphores.\nPlease initialize them by running the program using\nthe steps outlined in the comments of sampler.cpp.");
         return 0;
     }
     
+    // close all semaphores
     sem_close(semOut1);
     sem_close(semOut2);
     sem_close(semOut3);
     sem_close(semOrder);
     
+    // unlink them so their values can be reinitialized on make run again
     sem_unlink(SEM_OUT1);
     sem_unlink(SEM_OUT2);
     sem_unlink(SEM_OUT3);
