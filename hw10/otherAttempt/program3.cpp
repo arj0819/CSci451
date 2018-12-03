@@ -1,11 +1,3 @@
-/*
-Name:Tyler Clark
-Email: tyler.w.clark@und.edu
-HW#: Homework #8
-Class: CSCI 451
-Instructions: use provided makefile to compile the files and run the associated file generated (e.g. ./prog1)
-*/
-
 #include <stdlib.h>
 #include <stdio.h> 
 #include <iostream>
