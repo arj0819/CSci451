@@ -62,14 +62,17 @@ int main(int argc, char *argv[])
 			perror("Shared memory creation failed.");
 			exit(1);
 		}
+		int wordTypeValues[] = {3,7};
 		data = (int *) shmat(shmid, NULL, 0);
 		if(data == (void *)(-1))
 		{
 			perror("pointer to shared memory failed.\n");
 			exit(1);
 		}
-		*data = 10;
-		printf("Shared memory data: %d\n",*data);
+		data[0] = wordTypeValues[0];
+		data[1] = wordTypeValues[1];
+		printf("Shared memory data[0]: %d\n",data[0]);
+		printf("Shared memory data[1]: %d\n",data[1]);
 		shmdt(data);
 		
 		//puts("Before forks");

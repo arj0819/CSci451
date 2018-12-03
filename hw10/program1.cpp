@@ -44,13 +44,16 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 	data = (int *) shmat(shmid, NULL, 0);
-	printf("Shared memory data: %d\n",*data);
 	if(data == (void *)(-1))
 	{
 		perror("pointer to shared memory failed.\n");
 		exit(1);
 	}
+	int wordTypeValues[] = {data[0], data[1]};
+	printf("Shared memory data[0]: %d\n",wordTypeValues[0]);
+	printf("Shared memory data[1]: %d\n",wordTypeValues[1]);
 	shmdt(data);
+	shmctl(shmid,IPC_RMID, NULL);
 
 	ifstream inFile;
 	ofstream outFile;
