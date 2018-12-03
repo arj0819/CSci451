@@ -13,11 +13,44 @@
 #include <fstream>
 #include <string>
 
+#include <iostream>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <string.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <semaphore.h>
+#include <sys/stat.h>
+#include <thread>
+#include <fstream>
+#include <sys/shm.h>
+
 using namespace std;
 
 int main(int argc, char *argv[]) {
 
 	puts("Made it to Program 1");
+
+	key_t key; //unique key for shared memory segment
+	int shmid; //shared memory ID
+	int* data;
+	
+	key = 1234;	
+	if((shmid = shmget(key,100,0666| IPC_CREAT)) == -1)
+	{
+		perror("Shared memory creation failed.");
+		exit(1);
+	}
+	data = (int *) shmat(shmid, NULL, 0);
+	printf("Shared memory data: %d\n",*data);
+	if(data == (void *)(-1))
+	{
+		perror("pointer to shared memory failed.\n");
+		exit(1);
+	}
+	shmdt(data);
 
 	ifstream inFile;
 	ofstream outFile;

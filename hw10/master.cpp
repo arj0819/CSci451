@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 	pid_t forkedProcessIDs[3];
 	key_t key; //unique key for shared memory segment
 	int shmid; //shared memory ID
-	int *data;
+	int* data;
 	int pipe1[2];
 	int pipe2[2];
 
@@ -56,22 +56,21 @@ int main(int argc, char *argv[])
 
 		//create the shared memory space
 		//puts("Before shared mem creation");
-		if((key = ftok("./master.cpp", 'R')) == -1)
-		{
-			perror("Key creation failed.\n");
-			exit(1);
-		}	
-		if((shmid = shmget(key, 100, 0644 | IPC_CREAT)) == -1)
+		key = 1234;
+		if((shmid = shmget(key,100,0666| IPC_CREAT)) == -1)
 		{
 			perror("Shared memory creation failed.");
 			exit(1);
 		}
-		data = (int *) shmat(shmid, (void *)0, 0);
-		if(data == (int *)(-1))
+		data = (int *) shmat(shmid, NULL, 0);
+		if(data == (void *)(-1))
 		{
 			perror("pointer to shared memory failed.\n");
 			exit(1);
 		}
+		*data = 10;
+		printf("Shared memory data: %d\n",*data);
+		shmdt(data);
 		
 		//puts("Before forks");
 		forkedProcessIDs[0] = fork();
