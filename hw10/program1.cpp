@@ -5,14 +5,12 @@
 //Assignment: hw10
 
 /*
-    This program is the first of three programs in this homework.
-	It reads in the text from input.data and outputs it in a one
-	word per line format into temp1.data which is used by program2.
+    This program takes the arguments from master and feeds words
+	from the input.data file into pipe1, regulated by a semaphore.
 */
 
 #include <fstream>
 #include <string>
-
 #include <iostream>
 #include <unistd.h>
 #include <stdio.h>
@@ -23,51 +21,44 @@
 #include <fcntl.h>
 #include <semaphore.h>
 #include <sys/stat.h>
-#include <thread>
-#include <fstream>
 #include <sys/shm.h>
 
 using namespace std;
 
+//semaphores in global space
+sem_t* sem1;
+
 int main(int argc, char *argv[]) {
 
-	puts("Made it to Program 1");
-
-	key_t key; //unique key for shared memory segment
-	int shmid; //shared memory ID
-	int* data;
-	
-	key = 1234;	
-	if((shmid = shmget(key,100,0666| IPC_CREAT)) == -1)
-	{
-		perror("Shared memory creation failed.");
-		exit(1);
-	}
-	data = (int *) shmat(shmid, NULL, 0);
-	if(data == (void *)(-1))
-	{
-		perror("pointer to shared memory failed.\n");
-		exit(1);
-	}
-	int wordTypeValues[] = {data[0], data[1]};
-	printf("Shared memory data[0]: %d\n",wordTypeValues[0]);
-	printf("Shared memory data[1]: %d\n",wordTypeValues[1]);
-	shmdt(data);
-	shmctl(shmid,IPC_RMID, NULL);
-
-	ifstream inFile;
 	ofstream outFile;
 	string fileWord;
-
-	inFile.open("input.data");
+	
+	ifstream inFile(argv[0]);
 	if (!inFile) {
 		puts("Could not open input.data. Exiting...");
 		exit(0);
 	}
-
+	int pipe1Write = atoi(argv[1]);
+	sem1 = sem_open(argv[2], 0);
 	outFile.open("temp1.data");
-	while (inFile >> fileWord) {
-		outFile << fileWord << endl;
+
+	int sem1Value;
+	while(inFile >> fileWord) {
+		sem_getvalue(sem1,&sem1Value);
+		while(sem1Value == 1) {
+			sem_getvalue(sem1,&sem1Value);
+		}
+		sem_post(sem1);
+		fileWord.append("|");
+		outFile << fileWord << "\n";
+		write(pipe1Write, fileWord.c_str(), (strlen(fileWord.c_str())));
+		sem_getvalue(sem1,&sem1Value);
+	}
+	
+	if(inFile.eof()) {
+		sem_post(sem1);
+		sem_post(sem1);
+		sem_post(sem1);
 	}
 
 	inFile.close();

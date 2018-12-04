@@ -1,258 +1,149 @@
+//Author:     Aaron Johnson
+//Email:      aaron.r.johnson@und.edu
+//Course:     CSci451
+//Instructor: Dr. Ronald Marsh
+//Assignment: hw10
+
+/*
+    This program is the master program that forks 3 child processes,
+	passes appropriate arguments to each child process, and terminates
+	once the child processes have finished.
+
+	!!! --- HOW TO USE --- !!!
+
+	1. Use the included Makefile to "make all".
+	2. Use the included Makefile to "make run".
+	3. Use the included Makefile to "make run".
+		A. If at any point "make run" hangs, please use a Ctrl + C
+		   to kill the process, then run "./reset" before proceeding.
+	4. (Optional) Use the included Makefile to run "make clean".
+	5. Repeat this process as needed.
+
+	!!! --- Important Notes --- !!!
+
+	This system of programs isn't always 100% complete when transferring words
+	between the pipes and occasionally hangs up for an unknown reason at this
+	point. After it hangs, the Type 1 and Type 2 vals are almost always 0 on the
+	execution immediately following the hang. I was unable to find a solution to
+	these issues before the due date.
+*/
+
 #include <iostream>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <string.h>
-#include <sys/wait.h>
 #include <fcntl.h>
 #include <semaphore.h>
-#include <sys/stat.h>
-#include <thread>
-#include <fstream>
+#include <stdio.h>
+#include <string.h>
 #include <sys/shm.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 using namespace std;
 
-#ifndef SHM_SIZE
-#define SHM_SIZE 100 //shared memeory size
-#endif
-
-//globals
-sem_t sem1;
-sem_t sem2;
+//semaphores in global space
+sem_t* sem1;
+sem_t* sem2;
 
 int main(int argc, char *argv[])
 {
 	pid_t forkedProcessIDs[3];
-	key_t key; //unique key for shared memory segment
-	int shmid; //shared memory ID
-	int* data;
+	key_t key = 451;
 	int pipe1[2];
 	int pipe2[2];
+	int childProcessStatus;
 
 	if(argc != 3) {
-		puts("Please include input.data and temp3.data as args in that order.\n");
+		puts("Invald args.\nUseage: ./master input.data temp3.data\n");
 		return 1;
 	} else {
-		//init the semaphores
-		//puts("Before init semaphores");
-		if(sem_init(&sem1, 1, 1) != 0 || sem_init(&sem2, 1, 1) != 0) {
-			puts("Failed to initialize semaphores.\nPlease make clean, recompile, and try again.");
+		sem1 = sem_open("/sem1", O_CREAT, 0644, 0);
+		sem2 = sem_open("/sem2", O_CREAT, 0644, 0);
+		if(!sem1 || !sem2) {
+			puts("Failed to open semaphores.\nPlease make clean, make all, and make run");
+			exit(1);
 		}
 
-		//create the pipes
-		//puts("Before pipe creation");
 		if(pipe(pipe1) == -1)
 		{
-			puts("Pipe 1 failed to open.\nPlease make clean, recompile, and try again.");
-			return 2;
+			puts("Pipe 1 couldn't open.\nPlease make clean, make all, and make run");
+			exit(1);
 		}
 		if(pipe(pipe2) == -1)
 		{
-			puts("Pipe 2 failed to open.\nPlease make clean, recompile, and try again.");
-			return 2;
+			puts("Pipe 2 couldn't open.\nPlease make clean, make all, and make run");
+			exit(1);
 		}
 
-		//create the shared memory space
-		//puts("Before shared mem creation");
-		key = 1234;
-		if((shmid = shmget(key,100,0666| IPC_CREAT)) == -1)
-		{
-			perror("Shared memory creation failed.");
-			exit(1);
-		}
-		int wordTypeValues[] = {3,7};
-		data = (int *) shmat(shmid, NULL, 0);
-		if(data == (void *)(-1))
-		{
-			perror("pointer to shared memory failed.\n");
-			exit(1);
-		}
-		data[0] = wordTypeValues[0];
-		data[1] = wordTypeValues[1];
-		printf("Shared memory data[0]: %d\n",data[0]);
-		printf("Shared memory data[1]: %d\n",data[1]);
-		shmdt(data);
-		
-		//puts("Before forks");
 		forkedProcessIDs[0] = fork();
 		forkedProcessIDs[1] = fork();
 		forkedProcessIDs[2] = fork();
 
 		if(forkedProcessIDs[0] == -1 || forkedProcessIDs[1] == -1 || forkedProcessIDs[2] == -1) {
-			puts("One or more of the forks failed.\nPlease make clean, recompile, and try again.");
+			puts("Couldn't fork.\nPlease make clean, make all, and make run");
 			exit(1);
 		}
-
 		if(forkedProcessIDs[0] == 0 && forkedProcessIDs[1] > 0 && forkedProcessIDs[2] > 0) {
-			puts("This is Program 1 child");
-		   	char *cmd = (char *) "./program1";
-			char *prog1Args[4];
+		   	char* program1 = (char *) "./program1";
+			char* prog1Args[4];
+			char pipe1Write[20];
+			snprintf(pipe1Write, sizeof(pipe1Write), "%d", pipe1[1]);
+			close(pipe1[0]);
 
     		prog1Args[0] = argv[1];
-    		prog1Args[1] = (char *) &pipe1[1];
-    		prog1Args[2] = (char *) &sem1;
+    		prog1Args[1] = pipe1Write;
+    		prog1Args[2] = (char *) "/sem1";
 			prog1Args[3] = NULL;
-    		if(execvp(cmd, prog1Args) == -1) {
-				puts("Error running Program1. Please make clean, recompile, and try again.");
+    		if(execvp(program1, prog1Args) == -1) {
+				puts("Error running Program1.\nPlease make clean, make all, and make run");
 				printf("Error: %s\n", strerror(errno));
 			}
-			//system("./program1");
-		
-		} else if(forkedProcessIDs[0] > 0 && forkedProcessIDs[1] == 0 && forkedProcessIDs[2] > 0) {
-			puts("This is Program 2 child");
-		   	char *cmd = (char *) "./program2";				
-   			char *prog2Args[6];
+		} else if (forkedProcessIDs[0] > 0 && forkedProcessIDs[1] == 0 && forkedProcessIDs[2] > 0) {
+		   	char* program2 = (char *) "./program2";				
+   			char* prog2Args[6];
+			char pipe1Read[20];
+			char pipe2Write[20];
+			char sharedMemKey[20];
+			snprintf(pipe1Read, sizeof(pipe1Read), "%d", pipe1[0]);
+			snprintf(pipe2Write, sizeof(pipe2Write), "%d", pipe2[1]);
+			sprintf(sharedMemKey, "%d", key);
+			close(pipe1[1]);
+			close(pipe2[0]);
 
-    		prog2Args[0] = (char *) &pipe1[0];
-			prog2Args[1] = (char *) &pipe2[1];
-    		prog2Args[2] = (char *) &sem1;
-    		prog2Args[3] = (char *) &sem2;
-    		prog2Args[4] = (char *) &shmid;
+    		prog2Args[0] = (char *) pipe1Read;
+			prog2Args[1] = (char *) pipe2Write;
+    		prog2Args[2] = (char *) "/sem1";
+    		prog2Args[3] = (char *) "/sem2";
+    		prog2Args[4] = sharedMemKey;
     		prog2Args[5] = NULL;
-    		if(execvp(cmd, prog2Args) == -1 ) {
-				puts("Error running Program2. Please make clean, recompile, and try again.");
+    		if(execvp(program2, prog2Args) == -1 ) {
+				puts("Error running Program2.\nPlease make clean, make all, and make run");
 				printf("Error: %s\n", strerror(errno));
 			}
-			//system("./program2");
-
-		} else if(forkedProcessIDs[0] > 0 && forkedProcessIDs[1] > 0 && forkedProcessIDs[2] == 0) {
-			puts("This is Program 3 child");
-		   	char *cmd = (char *) "./program3";
-   			char *prog3Args[5];
+		} else if (forkedProcessIDs[0] > 0 && forkedProcessIDs[1] > 0 && forkedProcessIDs[2] == 0) {
+		   	char* program3 = (char *) "./program3";
+   			char* prog3Args[5];
+			char pipe2Read[20];
+			char sharedMemKey[20];
+			snprintf(pipe2Read, sizeof(pipe2Read), "%d", pipe2[0]);
+			sprintf(sharedMemKey, "%d", key);
+			close(pipe2[1]);
 
     		prog3Args[0] = argv[2];
-    		prog3Args[1] = (char *) &pipe2[0];
-    		prog3Args[2] = (char *) &sem2;
-    		prog3Args[3] = (char *) &shmid;
+    		prog3Args[1] = pipe2Read;
+    		prog3Args[2] = (char *) "/sem2";
+    		prog3Args[3] = sharedMemKey;
     		prog3Args[4] = NULL;
-    		if(execvp(cmd, prog3Args) == -1) {
-				puts("Error running Program3. Please make clean, recompile, and try again.");
+    		if(execvp(program3, prog3Args) == -1) {
+				puts("Error running Program3.\nPlease make clean, make all, and make run");
 				printf("Error: %s\n", strerror(errno));
 			}
-			//system("./program3");
-
-		} else {
-
-		}
-		/*
-		if((forkedProcessIDs[0] = fork()) == 0) {
-			cout << "Execute Prog1\n";
-			char pw[20];
-			close(pipe1[0]);
-		   	char *cmd = (char *) "./prog1";
-			char *args[4];								
-			system("./pr")
-    		args[0] = argv[1];
-			snprintf(pw, sizeof(pw), "%d", pipe1[1]);
-    		args[1] = pw;
-    		args[2] = (char *) sem1;						
-    		args[3] = NULL;
-    		execvp(cmd, args);
-
-		} else {
-			int status;
-			waitpid(forkedProcessIDs[0], &status, 0);
 		}
 
-		if((forkedProcessIDs[1] = fork()) == 0) {
-			cout << "Execute Prog2\n";
-		   	char *cmd = (char *) "./prog2";				
-   			char *args[3];
-			//char semarg[20];
-			char pr[20];
-			close(pipe1[1]);
-			snprintf(pr, sizeof(pr), "%d", pipe1[0]);
-    		args[0] = pr;
-    		args[1] = (char *) sem1;
-			/*
-    		args[2] = sem1;
-    		args[3] = sem2;
-    		args[4] = (char *) shmid		
-			/		
-    		args[2] = NULL;
-    		execvp(cmd, args);init semaphores
-		} else {
-			int status;
-			waitpid(forkedProcessIDs[1], &status, 0);
-		}
+		waitpid(forkedProcessIDs[0], &childProcessStatus, 0);
+		waitpid(forkedProcessIDs[1], &childProcessStatus, 0);
+		waitpid(forkedProcessIDs[2], &childProcessStatus, 0);
 
-		if((forkedProcessIDs[2] = fork()) == 0) {
-			cout << "Execute Prog3\n";
-		   	char *cmd = (char *) "./prog3";
-   			char *args[1];
-			/*
-    		args[0] = argv[2];
-    		args[1] = (char *) pipe2[0];
-    		args[2] = sem2;
-    		args[3] = (char *) shmid
-			/
-    		args[0] = NULL;
-    		execvp(cmd, args);
-		} else {
-			int status;
-
-
-			waitpid(forkedProcessIDs[2], &status, 0);
-		}
-		*/
-		
-		// for(int i = 0; i < 3; i++) {
-		// 	if((forkedProcessIDs[i] = fork()) == 0) {
-		// 		if(i == 0) {
-		// 			cout << "Execute Prog1\n";
-		// 			char pw[20];
-		// 			close(pipe1[0]);
-		// 		   	char *cmd = (char *) "./program1";
-		// 			char *args[4];								
-		//     		args[0] = argv[1];
-    	// 			snprintf(pw, sizeof(pw), "%d", pipe1[1]);
-		//     		args[1] = pw;
-		//     		args[2] = (char *) sem1;						
-		//     		args[3] = NULL;
-		//     		execvp(cmd, args);
-		// 		} else if (i == 1) {
-		// 			cout << "Execute Prog2\n";
-		// 		   	char *cmd = (char *) "./program2";				
-		//    			char *args[3];
-		// 			char semarg[20];
-		// 			char pr[20];
-		// 			close(pipe1[1]);
-
-
-    	// 			snprintf(pr, sizeof(pr), "%d", pipe1[0]);
-		//     		args[0] = pr;
-		//     		args[1] = (char *) sem1;
-		// 			/*
-		//     		args[2] = sem1;
-		//     		args[3] = sem2;
-		//     		args[4] = (char *) shmid
-		// 			*/				
-		//     		args[2] = NULL;
-		//     		execvp(cmd, args);
-		// 		} else {
-
-
-		// 			cout << "Execute Prog3\n";
-		// 		   	char *cmd = (char *) "./program3";
-		//    			char *args[1];
-		// 			/*
-		//     		args[0] = argv[2];
-		//     		args[1] = (char *) pipe2[0];
-		//     		args[2] = sem2;
-		//     		args[3] = (char *) shmid
-		// 			*/
-		//     		args[0] = NULL;
-		//     		execvp(cmd, args);
-		// 			//system("./program3 NULL");
-		// 		}			
-		// 	} else {
-		// 		int status;
-		// 		waitpid(forkedProcessIDs[i], &status, 0);
-		// 	}
-		// }
-		
 		return 0;
 	}
 }

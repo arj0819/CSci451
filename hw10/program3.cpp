@@ -5,54 +5,91 @@
 //Assignment: hw10
 
 /*
-    This program is the third of three programs in this homework.
-	It reads in the text from temp2.data and reconstructs the 
-	messange into its original single line format. It also outputs
-	the determined quantity of each word type.
+    This program reads words from pipe 2 and reassembles the original
+	input.data translated into Pig Latin, regulated by a semaphore.
 */
 
 #include <fstream>
 #include <string>
+#include <iostream>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <string.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <semaphore.h>
+#include <sys/stat.h>
+#include <sys/shm.h>
 
 using namespace std;
 
+//semaphores in global space
+sem_t* sem2;
+
 int main(int argc, char *argv[]) {
 
-	puts("Made it to Program 3");
+	ofstream outFile(argv[0]);
+	int pipe2 = atoi(argv[1]);
+	sem2 = sem_open(argv[2], 0);
+
+	int sem2Value;
+	key_t key;
+	int shmid;
+	int* sharedData;
+	
+	sleep(0.5);
+	key = atoi(argv[3]);	
+	if((shmid = shmget(key,100,0666| IPC_CREAT)) == -1)
+	{
+		perror("Couldn't create shared memory segment.");
+		exit(1);
+	}
+	sharedData = (int *) shmat(shmid, NULL, 0);
+	if(sharedData == (void *)(-1))
+	{
+		perror("Prog3, pointer to shared memory failed.\n");
+		exit(1);
+	}
+	int wordTypeValues[] = {sharedData[0], sharedData[1]};
+
+	printf("Type 1: %d\n", wordTypeValues[0]);
+	printf("Type 2: %d\n", wordTypeValues[1]);
+
+	shmdt(sharedData);
+	shmctl(shmid,IPC_RMID,NULL);
 
 	ifstream temp2;
-	ifstream shared1;
-	ifstream shared2;
-	ofstream outFile;
-
 	temp2.open("temp2.data");
-	shared1.open("shared1.dat");
-	shared2.open("shared2.dat");
-
-	if(!temp2 || !shared1 || !shared2) {
-		puts("Could not open files. Exiting...");
+	if(!temp2) {
+		puts("Could not open temp2.data. Exiting...");
 		exit(0);
-	}
-	outFile.open("temp3.data");
-	
-	int type1WordsCount;
-	int type2WordsCount;
+	}	
 
-	while(shared1 >> type1WordsCount) {
-		printf("Type 1: %d\n", type1WordsCount);
+	char pipe2ReadBuffer[256];
+	string word;
+    sem_getvalue(sem2,&sem2Value);
+
+	while(sem2Value < 2) {
+	    sem_getvalue(sem2,&sem2Value);
+
+		while(sem2Value == 0) {
+			sem_getvalue(sem2,&sem2Value);
+		}
+		sem_wait(sem2);
+		read(pipe2, pipe2ReadBuffer, sizeof(pipe2ReadBuffer));
+		word = pipe2ReadBuffer;
+		string::size_type delimiterPosition = word.find('|');
+		word = word.substr(0, delimiterPosition);
+		outFile << word << " ";
+	    sem_getvalue(sem2,&sem2Value);
 	}
-	while(shared2 >> type2WordsCount) {
-		printf("Type 2: %d\n", type2WordsCount);
-	}
-	
-	string fileWord;
-	while(temp2 >> fileWord) {
-		outFile << fileWord + " ";
-	}
+	sem_wait(sem2);
+	sem_wait(sem2);
+	sem_wait(sem2);
 
 	temp2.close();
-	shared1.close();
-	shared2.close();
 	outFile.close();
 
 	return 0;
