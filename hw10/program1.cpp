@@ -47,6 +47,7 @@ int main(int argc, char *argv[]) {
 		sem_getvalue(sem1,&sem1Value);
 		while(sem1Value == 1) {
 			sem_getvalue(sem1,&sem1Value);
+            usleep(1);
 		}
 		sem_post(sem1);
 		fileWord.append("|");

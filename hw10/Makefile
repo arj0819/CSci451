@@ -1,6 +1,6 @@
 all: master program1 program2 program3 reset
 master:
-	g++ -std=c++11 master.cpp -o master -l pthread
+	g++ -std=c++11 master.cpp -o master -l pthread 
 program1:
 	g++ -std=c++11 program1.cpp -o program1 -l pthread
 program2:

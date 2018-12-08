@@ -76,6 +76,7 @@ int main(int argc, char *argv[]) {
 
 		while(sem2Value == 0) {
 			sem_getvalue(sem2,&sem2Value);
+            usleep(1);
 		}
 		sem_wait(sem2);
 		read(pipe2, pipe2ReadBuffer, sizeof(pipe2ReadBuffer));
